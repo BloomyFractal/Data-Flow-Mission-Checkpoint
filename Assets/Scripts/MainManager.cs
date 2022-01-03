@@ -3,28 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainManager : MonoBehaviour
 {
+
+   public static MainManager mainManager;
+
+    //Gameplay variable
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
-    public Text ScoreText;
+    //Text variables
+    public TextMeshProUGUI ScoreText;
+    public TextMeshProUGUI bestScoreText;
     public GameObject GameOverText;
-    
+
+    public int score;//The total number of points for a single session
+
+    //Game Management variables
     private bool m_Started = false;
-    private int m_Points;
-    
     private bool m_GameOver = false;
 
-    
     // Start is called before the first frame update
     void Start()
     {
+      score = 0;
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
+
         int[] pointCountArray = new [] {1,1,2,2,5,5};
         for (int i = 0; i < LineCount; ++i)
         {
@@ -62,15 +71,35 @@ public class MainManager : MonoBehaviour
         }
     }
 
-    void AddPoint(int point)
+    void AddPoint(int point)//Number of points obtained per brick destroyed
     {
-        m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+       score += point;
+       ScoreText.text = "Score: " + score + " pts";
+
+       //Save only highest score
+       if (score > DataPersists.dataPersists.highScore)
+       {
+
+         DataPersists.dataPersists.bestScorePlayer = DataPersists.dataPersists.playerName;
+
+         DataPersists.dataPersists.highScore += point;
+
+         bestScoreText.text = "Best Score: " + DataPersists.dataPersists.playerName + " - " + DataPersists.dataPersists.highScore + " pts";
+       }
+
+       bestScoreText.text = "Best Score: " + DataPersists.dataPersists.bestScorePlayer + " - " + DataPersists.dataPersists.highScore + " pts";
+    }
+
+    public void GoToMenu()
+    {
+      SceneManager.LoadScene(0);
     }
 
     public void GameOver()
     {
-        m_GameOver = true;
-        GameOverText.SetActive(true);
+      m_GameOver = true;
+      GameOverText.SetActive(true);
+
+       DataPersists.dataPersists.SaveNameAndScore();
     }
 }
